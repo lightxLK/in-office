@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Is Light in the Office?</title>
   <link rel="manifest" href="manifest.json" />
   <style>
@@ -16,7 +16,6 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      overflow: hidden;
     }
 
     h1 {
@@ -67,14 +66,19 @@
   <p><span class="dot"></span><span id="message"></span></p>
   <p class="session" id="session"></p>
 
-  <button onclick="toggle()">Toggle Status</button>
+  <!-- Admin-only toggle button (initially hidden) -->
+  <button id="toggle-btn" style="display:none;" onclick="toggle()">Toggle Status</button>
 
-  <button onclick="authPrompt()">Admin Login</button>
+  <!-- Admin login -->
+  <button id="admin-btn" onclick="authPrompt()">Admin Login</button>
 
+  <!-- QR Code -->
   <div id="qrcode"></div>
 
+  <!-- Sound -->
   <audio id="toggle-sound" src="https://www.soundjay.com/button/sounds/button-3.mp3"></audio>
 
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
@@ -83,10 +87,13 @@
     const message = document.getElementById("message");
     const session = document.getElementById("session");
     const sound = document.getElementById("toggle-sound");
+    const toggleBtn = document.getElementById("toggle-btn");
+    const adminBtn = document.getElementById("admin-btn");
     const QR_CONTAINER = document.getElementById("qrcode");
+
     const password = "lightsecret";
 
-    // Load existing status
+    // Load current status
     let current = localStorage.getItem("lightStatus") || "out";
     let sessionStart = localStorage.getItem("sessionStart");
 
@@ -99,7 +106,7 @@
     function updateUI() {
       const isIn = current === "in";
       statusText.textContent = isIn ? "Yes" : "No";
-      message.textContent = `Light is ${isIn ? "in" : "not in"} the office right now.`;
+      message.textContent = `Light is ${isIn ? "in" : "not in"} the office.`;
 
       if (isIn && sessionStart) {
         const now = new Date().getTime();
@@ -127,8 +134,10 @@
     function authPrompt() {
       const input = prompt("Enter admin password:");
       if (input === password) {
-        alert("Access granted.");
-        toggle();
+        sessionStorage.setItem("admin", "true");
+        toggleBtn.style.display = "inline-block";
+        adminBtn.textContent = "Admin: Logged In";
+        alert("Admin access granted.");
       } else {
         alert("Incorrect password.");
       }
@@ -141,13 +150,20 @@
     document.addEventListener("DOMContentLoaded", () => {
       updateUI();
       generateQR();
+
+      // Check if already admin
+      if (sessionStorage.getItem("admin") === "true") {
+        toggleBtn.style.display = "inline-block";
+        adminBtn.textContent = "Admin: Logged In";
+      }
+
       setInterval(updateUI, 5000);
     });
 
     if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js');
+      navigator.serviceWorker.register('service-worker.js');
     }
-
   </script>
+
 </body>
 </html>
